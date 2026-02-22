@@ -1,8 +1,34 @@
 # simple-picture-viewer
-A Simple Program for looking, sorting and saving at your pictures
 
-FInd a Folder Structure
+An Electron application with Solid and TypeScript
 
+## Recommended IDE Setup
 
-### Installed Dependencies
-- Tailwind CSS ```npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch```is missing....
+- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+
+## Project Setup
+
+### Install
+
+```bash
+$ npm install
+```
+
+### Development
+
+```bash
+$ npm run dev
+```
+
+### Build
+
+```bash
+# For windows
+$ npm run build:win
+
+# For macOS
+$ npm run build:mac
+
+# For Linux
+$ npm run build:linux
+```
