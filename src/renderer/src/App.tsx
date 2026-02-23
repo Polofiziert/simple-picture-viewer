@@ -14,8 +14,15 @@ const App: Component = () => {
           <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
             Send IPC
           </a>
-      <Versions />
-            <Button>Click me</Button>
+            <Versions />
+    <div class="grid max-w-md grid-cols-3 gap-4">
+      <Button onClick={ipcHandle}>Primary</Button>
+      <Button onClick={ipcHandle} variant="secondary">Secondary</Button>
+      <Button onClick={ipcHandle} variant="destructive">Destructive</Button>
+      <Button onClick={ipcHandle} variant="outline">Outline</Button>
+      <Button onClick={ipcHandle} variant="ghost">Ghost</Button>
+      <Button onClick={ipcHandle} variant="link">Link</Button>
+    </div>
 
     </>
   )
