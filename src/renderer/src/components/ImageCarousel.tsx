@@ -3,6 +3,10 @@ import { Star, ChevronLeft, ChevronRight } from 'lucide-solid'
 
 import { Button } from './ui/button'
 
+/**
+ * ImageCarousel component - Displays images in current set in a horizontal list.
+ * Allows users chose the current image
+ */
 const ImageCarousel: Component = () => {
     return (
         <div

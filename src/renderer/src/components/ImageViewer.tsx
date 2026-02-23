@@ -2,6 +2,10 @@ import { type Component } from 'solid-js'
 import { ZoomOut, RotateCw, Palette, ZoomIn } from 'lucide-solid'
 import { Button } from './ui/button'
 
+/**
+ * ImageViewer component - Displays Current Image with some options
+ * Allows users to see the current picture
+ */
 const ImageViewer: Component = () => {
     return (
         <div

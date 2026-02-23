@@ -22,6 +22,10 @@ interface CustomWindowBarProps {
 }
 */
 
+/**
+ * CustomWindowBar component - macOS-style window bar with traffic lights and controls
+ * Provides navigation, marking, categorization, and view toggle functionality
+ */
 const CustomWindowBar: Component = () => {
     // const [versions] = createSignal(window.electron.process.versions)
     // const categories = ['Nature', 'Landscape', 'Urban', 'Travel', 'Favorites'];

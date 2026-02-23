@@ -1,7 +1,10 @@
-import { type Component, createSignal } from 'solid-js'
+import { type Component } from 'solid-js'
 import { ImageIcon, HardDrive, Ruler, Calendar } from 'lucide-solid'
-import { Button } from './ui/button'
 
+/**
+ * DetailsPanel component - Displays metadata and information about the current image
+ * Shows file properties, dimensions, modification date, and categorization status
+ */
 const DetailsPanel: Component = () => {
     return (
         <aside
