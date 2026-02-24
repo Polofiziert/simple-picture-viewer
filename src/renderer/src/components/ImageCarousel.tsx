@@ -1,13 +1,26 @@
-import { type Component } from 'solid-js'
+import { type Component, For } from 'solid-js'
 import { Star, ChevronLeft, ChevronRight } from 'lucide-solid'
 
 import { Button } from './ui/button'
+
+interface ImageCarouselProps {
+    images: Array<{
+        id: number
+        src: string
+        name: string
+        marked: boolean
+    }>
+    currentIndex: number
+}
 
 /**
  * ImageCarousel component - Displays images in current set in a horizontal list.
  * Allows users chose the current image
  */
-const ImageCarousel: Component = () => {
+const ImageCarousel: Component<ImageCarouselProps> = (props) => {
+    let scrollContainerRef!: HTMLDivElement
+    let currentThumbnailRef!: HTMLButtonElement
+
     return (
         <div
             class="h-32 bg-white/40 dark:bg-black/40 backdrop-blur-xl border-t border-white/20 dark:border-black/20 relative"
@@ -36,24 +49,37 @@ const ImageCarousel: Component = () => {
                 style={{ 'scrollbar-width': 'none' }}
             >
                 <div class="flex items-center gap-3 p-4 h-full justify-start min-w-max px-16">
-                    <button
-                        class={`relative flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden transition-all ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-110`}
-                        aria-label={`image name`}
-                        aria-current="true"
-                        tabIndex="0"
-                    >
-                        <img
-                            src="https://fastly.picsum.photos/id/112/200/300.jpg"
-                            alt="https://fastly.picsum.photos/id/112/200/300.jpg"
-                            class="w-full h-full object-cover"
-                        />
-                        <div
-                            class="absolute top-1 right-1 bg-blue-500 rounded-full p-0.5"
-                            aria-label="Marked"
-                        >
-                            <Star class="w-3 h-3 text-white fill-current" />
-                        </div>
-                    </button>
+                    <For each={props.images}>
+                        {(item, index) => (
+                            <button
+                                ref={
+                                    index() === props.currentIndex ? currentThumbnailRef : undefined
+                                }
+                                class={`relative flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden transition-all ${
+                                    props.currentIndex === index()
+                                        ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-110'
+                                        : 'hover:scale-105 opacity-80 hover:opacity-100'
+                                }`}
+                                aria-label={`${item.name}${item.marked ? ' (marked)' : ''}`}
+                                aria-current={props.currentIndex === index() ? 'true' : 'false'}
+                                tabIndex={props.currentIndex === index() ? 0 : -1}
+                            >
+                                <img
+                                    src={item.src}
+                                    alt={item.name}
+                                    class="w-full h-full object-cover"
+                                />
+                                {item.marked && (
+                                    <div
+                                        class="absolute top-1 right-1 bg-blue-500 rounded-full p-0.5"
+                                        aria-label="Marked"
+                                    >
+                                        <Star class="w-3 h-3 text-white fill-current" />
+                                    </div>
+                                )}
+                            </button>
+                        )}
+                    </For>
                 </div>
             </div>
 
