@@ -10,6 +10,12 @@ import ImageCarousel from './components/ImageCarousel'
 // import { Button } from '~/components/ui/button'
 
 // import electronLogo from './assets/electron.svg'
+import image1 from './assets/img/DSC_0039.JPG'
+import image2 from './assets/img/DSC_0040.JPG'
+import image3 from './assets/img/DSC_0041.JPG'
+import image4 from './assets/img/DSC_0042.JPG'
+import image5 from './assets/img/DSC_0043.JPG'
+import image6 from './assets/img/DSC_0044.JPG'
 
 interface ImageData {
     id: number
@@ -26,7 +32,7 @@ interface ImageData {
 const sampleImages: ImageData[] = [
     {
         id: 1,
-        src: 'https://images.unsplash.com/photo-1604223190546-a43e4c7f29d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMGxhbmRzY2FwZXxlbnwxfHx8fDE3NzE2NDc0OTh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+        src: image1,
         name: 'mountain-landscape.jpg',
         size: '2.4 MB',
         dimensions: '1920 × 1280',
@@ -37,7 +43,7 @@ const sampleImages: ImageData[] = [
     },
     {
         id: 2,
-        src: 'https://images.unsplash.com/photo-1533371452382-d45a9da51ad9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvY2VhbiUyMHN1bnNldHxlbnwxfHx8fDE3NzE2ODcxNDJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+        src: image2,
         name: 'ocean-sunset.jpg',
         size: '3.1 MB',
         dimensions: '2048 × 1365',
@@ -48,7 +54,7 @@ const sampleImages: ImageData[] = [
     },
     {
         id: 3,
-        src: 'https://images.unsplash.com/photo-1590273466070-40c466b4432d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb3Jlc3QlMjB0cmVlc3xlbnwxfHx8fDE3NzE3MjEzMDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+        src: image3,
         name: 'forest-trees.jpg',
         size: '1.8 MB',
         dimensions: '1600 × 1067',
@@ -59,7 +65,7 @@ const sampleImages: ImageData[] = [
     },
     {
         id: 4,
-        src: 'https://images.unsplash.com/photo-1542401886-65d6c61db217?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNlcnQlMjBkdW5lc3xlbnwxfHx8fDE3NzE3MjEzMDR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+        src: image4,
         name: 'desert-dunes.jpg',
         size: '2.7 MB',
         dimensions: '2200 × 1467',
@@ -70,7 +76,7 @@ const sampleImages: ImageData[] = [
     },
     {
         id: 5,
-        src: 'https://images.unsplash.com/photo-1617381519460-d87050ddeb92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaXR5JTIwYXJjaGl0ZWN0dXJlfGVufDF8fHx8MTc3MTc0ODg2NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+        src: image5,
         name: 'city-architecture.jpg',
         size: '3.5 MB',
         dimensions: '2400 × 1600',
@@ -81,7 +87,7 @@ const sampleImages: ImageData[] = [
     },
     {
         id: 6,
-        src: 'https://images.unsplash.com/photo-1610044847457-f6aabcbb67d3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3YXRlcmZhbGwlMjBuYXR1cmV8ZW58MXx8fHwxNzcxNjg1NTkxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+        src: image6,
         name: 'waterfall-nature.jpg',
         size: '2.9 MB',
         dimensions: '1920 × 1280',
@@ -121,7 +127,15 @@ const App: Component = () => {
                     <ImageViewer />
                     <DetailsPanel />
                 </div>
-                <ImageCarousel />
+                <ImageCarousel
+                    images={images().map((img) => ({
+                        id: img.id,
+                        src: img.src,
+                        name: img.name,
+                        marked: img.marked
+                    }))}
+                    currentIndex={currentIndex()}
+                />
             </div>
         </>
     )
