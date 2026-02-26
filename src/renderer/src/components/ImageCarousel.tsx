@@ -1,4 +1,4 @@
-import { type Component, For } from 'solid-js'
+import { type Component, For, createEffect } from 'solid-js'
 import { Star, ChevronLeft, ChevronRight } from 'lucide-solid'
 
 import { Button } from './ui/button'
@@ -11,6 +11,8 @@ interface ImageCarouselProps {
         marked: boolean
     }>
     currentIndex: number
+    onSelect: (index: number) => void
+    onNavigate: (direction: 'prev' | 'next') => void
 }
 
 /**
@@ -19,7 +21,41 @@ interface ImageCarouselProps {
  */
 const ImageCarousel: Component<ImageCarouselProps> = (props) => {
     let scrollContainerRef!: HTMLDivElement
-    let currentThumbnailRef!: HTMLButtonElement
+    const thumbnailRefs = {}
+
+    // Auto-scroll to center the current image
+    createEffect(() => {
+        if (thumbnailRefs[props.currentIndex] && scrollContainerRef) {
+            // Safty check: when the thumbnailRefs[xx] and scrollContainerRef exist
+            const container = scrollContainerRef
+            const thumbnail = thumbnailRefs[props.currentIndex]
+            const containerWidth = container.offsetWidth
+            const thumbnailLeft = thumbnail.offsetLeft
+            const thumbnailWidth = thumbnail.offsetWidth
+
+            // Calculate scroll position to center the thumbnail
+            const scrollPosition = thumbnailLeft - containerWidth / 2 + thumbnailWidth / 2
+            container.scrollTo({
+                left: scrollPosition,
+                behavior: 'smooth'
+            })
+        }
+    })
+
+    const handlePrev = (): void => {
+        if (props.currentIndex > 0) {
+            props.onNavigate('prev')
+        }
+    }
+    const handleNext = (): void => {
+        if (props.currentIndex < props.images.length - 1) {
+            props.onNavigate('next')
+        }
+    }
+
+    const handleSelect = (index: number): void => {
+        props.onSelect(index)
+    }
 
     return (
         <div
@@ -31,6 +67,8 @@ const ImageCarousel: Component<ImageCarouselProps> = (props) => {
             <div class="absolute left-0 top-0 bottom-0 flex items-center z-10 pl-2">
                 <Button
                     variant="ghost"
+                    onClick={handlePrev}
+                    disabled={props.currentIndex === 0}
                     size="sm"
                     class="h-20 w-10 bg-white/90 dark:bg-black/90 backdrop-blur-xl hover:bg-white dark:hover:bg-black shadow-lg disabled:opacity-40 group"
                     aria-label="Previous image"
@@ -45,21 +83,21 @@ const ImageCarousel: Component<ImageCarouselProps> = (props) => {
 
             {/* Carousel Container */}
             <div
+                ref={scrollContainerRef}
                 class="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
                 style={{ 'scrollbar-width': 'none' }}
             >
-                <div class="flex items-center gap-3 p-4 h-full justify-start min-w-max px-16">
+                <div class="flex items-center gap-3 p-4 h-full justify-center min-w-max px-16">
                     <For each={props.images}>
                         {(item, index) => (
                             <button
-                                ref={
-                                    index() === props.currentIndex ? currentThumbnailRef : undefined
-                                }
+                                ref={(el) => (thumbnailRefs[index()] = el)} // Fills the thumbnailRefs array with button elements, el is the current element
                                 class={`relative flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden transition-all ${
                                     props.currentIndex === index()
                                         ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent scale-110'
                                         : 'hover:scale-105 opacity-80 hover:opacity-100'
                                 }`}
+                                onClick={() => handleSelect(index())}
                                 aria-label={`${item.name}${item.marked ? ' (marked)' : ''}`}
                                 aria-current={props.currentIndex === index() ? 'true' : 'false'}
                                 tabIndex={props.currentIndex === index() ? 0 : -1}
@@ -87,6 +125,8 @@ const ImageCarousel: Component<ImageCarouselProps> = (props) => {
             <div class="absolute right-0 top-0 bottom-0 flex items-center z-10 pr-2">
                 <Button
                     variant="ghost"
+                    onClick={handleNext}
+                    disabled={props.currentIndex === props.images.length - 1}
                     size="sm"
                     class="h-20 w-10 bg-white/90 dark:bg-black/90 backdrop-blur-xl hover:bg-white dark:hover:bg-black shadow-lg disabled:opacity-40 group"
                     aria-label="Next image"

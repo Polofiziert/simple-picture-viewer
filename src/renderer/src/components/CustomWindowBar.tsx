@@ -1,9 +1,8 @@
-import { type Component } from 'solid-js'
+import { type Component, For } from 'solid-js'
 import { Star, Tag, Folder, ChevronLeft, ChevronRight, PanelLeft, PanelRight } from 'lucide-solid'
 
 import { Button } from '~/components/ui/button'
 
-/*
 interface CustomWindowBarProps {
     currentImage: {
         name: string
@@ -20,18 +19,13 @@ interface CustomWindowBarProps {
     onToggleFolderSidebar: () => void
     onToggleDetailsSidebar: () => void
 }
-*/
 
 /**
  * CustomWindowBar component - macOS-style window bar with traffic lights and controls
  * Provides navigation, marking, categorization, and view toggle functionality
  */
-const CustomWindowBar: Component = () => {
-    // const [versions] = createSignal(window.electron.process.versions)
-    // const categories = ['Nature', 'Landscape', 'Urban', 'Travel', 'Favorites'];
-
-    //const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
-    //const ipcHandle2 = (): void => window.api.minimize()
+const CustomWindowBar: Component<CustomWindowBarProps> = (props) => {
+    const categories = ['Nature', 'Landscape', 'Urban', 'Travel', 'Favorites']
 
     return (
         <header
@@ -66,23 +60,30 @@ const CustomWindowBar: Component = () => {
                     <Button
                         variant="ghost"
                         size="sm"
-                        //onClick={onToggleFolderSidebar}
-                        onClick={() => window.electron.ipcRenderer.send('ping')}
-                        class={`h-8 px-2 transition-all bg-blue-500/80 text-white hover:bg-blue-600/80 `} // Line From KI Orig missing
-                        aria-label="folder sidebar (Cmd + Shift + F)" // Line From KI Orig missing
-                        title="Folders (⌘⇧F)" // Line From KI Orig missing
-                        // Line From KI Orig missing
+                        onClick={props.onToggleFolderSidebar}
+                        class={`h-8 px-2 transition-all ${
+                            props.showFolderSidebar
+                                ? 'bg-blue-500/80 text-white hover:bg-blue-600/80'
+                                : 'bg-white/50 dark:bg-black/50 hover:bg-white/70 dark:hover:bg-black/70 text-gray-700 dark:text-gray-200'
+                        }`}
+                        aria-label={`${props.showFolderSidebar ? 'Hide' : 'Show'} folder sidebar (Cmd + Shift + F)`}
+                        title={`${props.showFolderSidebar ? 'Hide' : 'Show'} Folders (⌘⇧F)`}
+                        aria-pressed={props.showFolderSidebar}
                     >
                         <PanelLeft class="w-4 h-4" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="sm"
-                        // Line From KI Orig missing
-                        class={`h-8 px-2 transition-all`} // Line From KI Orig missing
-                        aria-label="Show details sidebar (Cmd + Shift + D)" // Line From KI Orig missing
-                        title={`Show Details (⌘⇧D)`}
-                        // Line From KI Orig missing
+                        onClick={props.onToggleDetailsSidebar}
+                        class={`h-8 px-2 transition-all ${
+                            props.showDetailsSidebar
+                                ? 'bg-blue-500/80 text-white hover:bg-blue-600/80'
+                                : 'bg-white/50 dark:bg-black/50 hover:bg-white/70 dark:hover:bg-black/70 text-gray-700 dark:text-gray-200'
+                        }`}
+                        aria-label={`${props.showDetailsSidebar ? 'Hide' : 'Show'} details sidebar (Cmd + Shift + D)`}
+                        title={`${props.showDetailsSidebar ? 'Hide' : 'Show'} Details (⌘⇧D)`}
+                        aria-pressed={props.showDetailsSidebar}
                     >
                         <PanelRight class="w-4 h-4" />
                     </Button>
@@ -99,8 +100,8 @@ const CustomWindowBar: Component = () => {
                 <Button
                     variant="ghost"
                     size="sm"
-                    // Line From KI Orig missing
-                    // Line From KI Orig missing
+                    onClick={() => props.onNavigate('prev')}
+                    disabled={!props.hasPrev}
                     class="h-8 px-2 bg-white/50 dark:bg-black/50 hover:bg-white/70 dark:hover:bg-black/70 text-gray-700 dark:text-gray-200 disabled:opacity-40"
                     aria-label="Previous image (Left arrow)"
                     title="Previous (←)"
@@ -112,14 +113,18 @@ const CustomWindowBar: Component = () => {
                     <Button
                         variant="ghost"
                         size="sm"
-                        // Line From KI Orig missing
-                        class={`h-8 px-3`} // Line From KI Orig missing
-                        aria-label={`Unmark image (Space)`} // Line From KI Orig missing
-                        title={`Unmark (Space)`} // Line From KI Orig missing
-                        // Line From KI Orig missing
+                        onClick={props.onMarkToggle}
+                        class={`h-8 px-3 ${
+                            props.currentImage.marked
+                                ? 'bg-blue-500/80 text-white hover:bg-blue-600/80'
+                                : 'bg-white/50 dark:bg-black/50 hover:bg-white/70 dark:hover:bg-black/70 text-gray-700 dark:text-gray-200'
+                        }`}
+                        aria-label={`${props.currentImage.marked ? 'Unmark' : 'Mark'} image (Space)`}
+                        title={`${props.currentImage.marked ? 'Unmark' : 'Mark'} (Space)`}
+                        aria-pressed={props.currentImage.marked}
                     >
                         <Star
-                            class={`w-4 h-4 mr-2`} // Line From KI Orig missing
+                            class={`w-4 h-4 mr-2 ${props.currentImage.marked ? 'fill-current' : ''}`}
                             aria-hidden="true"
                         />
                         Mark
@@ -130,12 +135,12 @@ const CustomWindowBar: Component = () => {
                             variant="ghost"
                             size="sm"
                             class="h-8 px-3 bg-white/50 dark:bg-black/50 hover:bg-white/70 dark:hover:bg-black/70 text-gray-700 dark:text-gray-200"
-                            aria-label={`Category: None (C)`} // Line From KI Orig missing
+                            aria-label={`Category: ${props.currentImage.category || 'None'} (C)`}
                             aria-haspopup="menu"
                             title={`Category (C)`}
                         >
                             <Tag class="w-4 h-4 mr-2" aria-hidden="true" />
-                            {/* Line From KI Orig missing*/}
+                            {props.currentImage.category || 'Category'}
                             Category
                         </Button>
                         <ul
@@ -143,15 +148,19 @@ const CustomWindowBar: Component = () => {
                             role="menu"
                             aria-label="Category menu"
                         >
-                            <li role="none">
-                                <button
-                                    // Line From KI Orig missing
-                                    class="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-blue-500/80 hover:text-white transition-colors"
-                                    role="menuitem"
-                                >
-                                    cat
-                                </button>
-                            </li>
+                            <For each={categories}>
+                                {(item, index) => (
+                                    <li role="none">
+                                        <button
+                                            onClick={() => props.onCategoryChange(item)}
+                                            class="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-blue-500/80 hover:text-white transition-colors"
+                                            role="menuitem"
+                                        >
+                                            {index() + ' ' + item}
+                                        </button>
+                                    </li>
+                                )}
+                            </For>
                         </ul>
                     </div>
                 </div>
@@ -159,8 +168,8 @@ const CustomWindowBar: Component = () => {
                 <Button
                     variant="ghost"
                     size="sm"
-                    // Line From KI Orig missing
-                    // Line From KI Orig missing
+                    onClick={() => props.onNavigate('next')}
+                    disabled={!props.hasNext}
                     class="h-8 px-2 bg-white/50 dark:bg-black/50 hover:bg-white/70 dark:hover:bg-black/70 text-gray-700 dark:text-gray-200 disabled:opacity-40"
                     aria-label="Next image (Right arrow)"
                     title="Next (→)"
@@ -172,8 +181,9 @@ const CustomWindowBar: Component = () => {
             {/* Right Side */}
             <div style={{ '-webkit-app-region': 'no-drag' }} class="flex items-center gap-2">
                 <Folder class="w-4 h-4 text-gray-600 dark:text-gray-300" aria-hidden="true" />
-                <span class="text-sm text-gray-700 dark:text-gray-200">ImageName</span>
-                {/* Line From KI Orig missing*/}
+                <span class="text-sm text-gray-700 dark:text-gray-200">
+                    {props.currentImage.name}
+                </span>
             </div>
         </header>
     )

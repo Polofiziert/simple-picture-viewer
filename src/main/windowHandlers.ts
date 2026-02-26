@@ -50,6 +50,7 @@ export function createWindow(): void {
         trafficLightPosition: { x: 15, y: 20 }, // Set a custom position for the traffic light buttons in frameless windows. On MacOS
         autoHideMenuBar: true, // Auto hide the menu bar unless the Alt key is pressed. Default is false.
         ...(process.platform === 'linux' ? { icon } : {}),
+        vibrancy: 'fullscreen-ui',
         webPreferences: {
             preload: join(__dirname, '../preload/index.js'),
             sandbox: false
