@@ -6,7 +6,16 @@ const api = {
     windowControll: {
         minimize: () => ipcRenderer.send('window-minimize'),
         maximize: () => ipcRenderer.send('window-maximize'),
-        close: () => ipcRenderer.send('window-close')
+        close: () => ipcRenderer.send('window-close'),
+        darkMode: {
+            // Not working
+            toggle: () => ipcRenderer.invoke('dark-mode:toggle'),
+            system: () => ipcRenderer.invoke('dark-mode:system'),
+            state: () => ipcRenderer.invoke('dark-mode:state')
+        }
+    },
+    fsControll: {
+        openFolder: () => ipcRenderer.invoke('dialog:openFolder')
     }
 }
 

@@ -1,4 +1,4 @@
-import { shell, ipcMain, BrowserWindow } from 'electron'
+import { shell, ipcMain, BrowserWindow, nativeTheme } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -32,6 +32,27 @@ export function registerWindowHandlers(): void {
             win?.maximize()
         }
     })
+
+    // Toggle the dark mode for the Browser windows
+    ipcMain.handle('dark-mode:toggle', () => {
+        console.log('Main/app/whenReady/registereWinHelpers(): dark-mode toggle()')
+        if (nativeTheme.shouldUseDarkColors) {
+            nativeTheme.themeSource = 'light'
+        } else {
+            nativeTheme.themeSource = 'dark'
+        }
+    })
+
+    // use the os darkmode settings for the Browser Windows
+    ipcMain.handle('dark-mode:system', () => {
+        console.log('Main/app/whenReady/registereWinHelpers(): dark-mode system()')
+        nativeTheme.themeSource = 'system'
+    })
+    // return current mode state
+    ipcMain.handle('dark-mode:state', () => {
+        console.log('Main/app/whenReady/registereWinHelpers(): dark-mode state()')
+        return nativeTheme.themeSource
+    })
 }
 
 /**
@@ -59,6 +80,10 @@ export function createWindow(): void {
 
     mainWindow.on('ready-to-show', () => {
         console.log('Main/app/whenReady/createWindow()/mainWindow-on/ready-to-show: ...')
+        console.log(
+            'Main/app/whenReady/createWindow()/mainWindow-on/ready-to-show: ',
+            nativeTheme.themeSource
+        )
         mainWindow.show()
     })
 

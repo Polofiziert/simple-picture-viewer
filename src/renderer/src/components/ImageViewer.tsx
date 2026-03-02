@@ -43,8 +43,8 @@ const ImageViewer: Component<ImageViewerProps> = (props) => {
     const handleZoomOut = (): void => handleZoomMouse(-0.1)
     const handleZoomReset = (): number => setZoom(1)
 
-    const handleRotate = (): number => setRotation((prev) => (prev + 90) % 360)
-    const handleGrayscale = (): boolean => setGrayscale((prev) => !prev)
+    const handleRotate = (): number => setRotation((prev) => (prev + 90) % 360) // TODO: Pass to image obj and give keyboard controlls
+    const handleGrayscale = (): boolean => setGrayscale((prev) => !prev) // TODO: Pass to image obj and give keyboard controlls
 
     /**
      * Handle mouse wheel zoom

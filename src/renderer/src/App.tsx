@@ -2,7 +2,7 @@ import type { Component } from 'solid-js'
 import { createEffect, createSignal } from 'solid-js'
 // import Versions from './components/Versions'
 import CustomWindowBar from './components/CustomWindowBar'
-import FolderSidebar from './components/FolderSidebar'
+import FolderSidebar, { FolderItem } from './components/FolderSidebar'
 import DetailsPanel from './components/DetailsPanel'
 import ImageViewer from './components/ImageViewer'
 import ImageCarousel from './components/ImageCarousel'
@@ -12,15 +12,11 @@ import ImageCarousel from './components/ImageCarousel'
 // import electronLogo from './assets/electron.svg'
 import image1 from './assets/img/DSC_0039.jpg'
 import image2 from './assets/img/DSC_0040.jpg'
-import image3 from './assets/img/DSC_0041.jpg'
-import image4 from './assets/img/DSC_0042.jpg'
-import image5 from './assets/img/DSC_0043.jpg'
-import image6 from './assets/img/DSC_0044.jpg'
-import image7 from './assets/img/DSC_0045.jpg'
-import image8 from './assets/img/DSC_0046.jpg'
-import image9 from './assets/img/DSC_0047.jpg'
-import image10 from './assets/img/DSC_0048.jpg'
-import image11 from './assets/img/DSC_0049.jpg'
+
+// interface ImageModifications {
+//     rotation: number
+//     greyscale: boolean
+// }
 
 interface ImageData {
     id: number
@@ -56,105 +52,6 @@ const sampleImages: ImageData[] = [
         format: 'JPEG',
         marked: false,
         category: 'Landscape'
-    },
-    {
-        id: 3,
-        src: image3,
-        name: 'forest-trees.jpg',
-        size: '1.8 MB',
-        dimensions: '1600 × 1067',
-        dateModified: 'Feb 18, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
-    },
-    {
-        id: 4,
-        src: image4,
-        name: 'desert-dunes.jpg',
-        size: '2.7 MB',
-        dimensions: '2200 × 1467',
-        dateModified: 'Feb 17, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Landscape'
-    },
-    {
-        id: 5,
-        src: image5,
-        name: 'city-architecture.jpg',
-        size: '3.5 MB',
-        dimensions: '2400 × 1600',
-        dateModified: 'Feb 16, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Urban'
-    },
-    {
-        id: 6,
-        src: image6,
-        name: 'waterfall-nature.jpg',
-        size: '2.9 MB',
-        dimensions: '1920 × 1280',
-        dateModified: 'Feb 15, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
-    },
-    {
-        id: 7,
-        src: image7,
-        name: 'waterfall-nature.jpg',
-        size: '2.9 MB',
-        dimensions: '1920 × 1280',
-        dateModified: 'Feb 15, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
-    },
-    {
-        id: 8,
-        src: image8,
-        name: 'waterfall-nature.jpg',
-        size: '2.9 MB',
-        dimensions: '1920 × 1280',
-        dateModified: 'Feb 15, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
-    },
-    {
-        id: 9,
-        src: image9,
-        name: 'waterfall-nature.jpg',
-        size: '2.9 MB',
-        dimensions: '1920 × 1280',
-        dateModified: 'Feb 15, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
-    },
-    {
-        id: 10,
-        src: image10,
-        name: 'waterfall-nature.jpg',
-        size: '2.9 MB',
-        dimensions: '1920 × 1280',
-        dateModified: 'Feb 15, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
-    },
-    {
-        id: 11,
-        src: image11,
-        name: 'waterfall-nature.jpg',
-        size: '2.9 MB',
-        dimensions: '1920 × 1280',
-        dateModified: 'Feb 15, 2026',
-        format: 'JPEG',
-        marked: false,
-        category: 'Nature'
     }
 ]
 
@@ -166,11 +63,25 @@ const sampleImages: ImageData[] = [
 const App: Component = () => {
     //const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
     const [images, setImages] = createSignal<ImageData[]>(sampleImages) // const [images, setImages] = createSignal<ImageData[]>(sampleImages)
-    const [currentIndex, setCurrentIndex] = createSignal<number>(5)
+    const [currentIndex, setCurrentIndex] = createSignal<number>(0)
     const [showFolderSidebar, setShowFolderSidebar] = createSignal<boolean>(false)
 
     const [showDetailsSidebar, setShowDetailsSidebar] = createSignal<boolean>(false)
     const [selectedFolder, setSelectedFolder] = createSignal('current')
+
+    const [folderStruk, setFolderStruk] = createSignal<FolderItem>()
+
+    // const [folderStruk] = createSignal({})
+
+    async function handleOpenFolder(): Promise<void> {
+        console.log('renderer/app/handleOpenFolder()')
+        const struk = await window.api.fsControll.openFolder()
+
+        console.log('renderer/app/handleOpenFolder() struk: ', struk)
+        setFolderStruk(struk)
+
+        console.log('renderer/app/handleOpenFolder() folderStruk signal: ', folderStruk())
+    }
 
     /**
      * Navigate to the previous or next image
@@ -216,7 +127,7 @@ const App: Component = () => {
      * Select a folder from the sidebar
      * @param folderId - The ID of the folder to select
      */
-    const handleFolderSelect = (folderId: string) => {
+    const handleFolderSelect = (folderId: string): void => {
         setSelectedFolder(folderId)
         // TODO: Filter images based on the selected folder
         // For marked folder, show only marked images
@@ -227,7 +138,7 @@ const App: Component = () => {
      * Keyboard shortcuts handler
      */
     createEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
             console.group('KeyPress')
             console.log('KeyPress: ', e)
 
@@ -284,7 +195,7 @@ const App: Component = () => {
 
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [currentIndex, images.length])
+    })
 
     return (
         <>
@@ -314,6 +225,8 @@ const App: Component = () => {
                     {showFolderSidebar() && (
                         <FolderSidebar
                             onFolderSelect={handleFolderSelect}
+                            onOpenFolder={handleOpenFolder}
+                            folderStruk={folderStruk()}
                             selectedFolder={selectedFolder()}
                         />
                     )}

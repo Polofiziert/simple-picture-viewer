@@ -7,13 +7,33 @@ declare global {
          */
         minimize(): void
         /**
-         * minimize() - minimizes the window
+         * maximize() - maximizes the window
          */
         maximize(): void
         /**
-         * minimize() - minimizes the window
+         * close() - close the window
          */
         close(): void
+        /**
+         * darkMode - set the darkmode mode, toggle() light and dark, or system()
+         */
+        darkMode: {
+            /**
+             * darkMode.toggle() - toggle the darkMode mode, from prev to next, light to dark and dark to light
+             */
+            toggle(): Promise
+            /**
+             * darkMode.system() - set the darkmode mode from systems prefrences, just go along
+             */
+            system(): Promise
+            /**
+             * darkMode.system() - set the darkmode mode from systems prefrences, just go along
+             */
+            state(): Promise
+        }
+    }
+    interface fsControll {
+        openFolder(): Promise
     }
 
     interface API {
@@ -21,6 +41,7 @@ declare global {
          * contextBridge.api.windowControll - windowControll helper functions
          */
         windowControll: WindowControll
+        fsControll: fsControll
     }
 
     interface Window {
