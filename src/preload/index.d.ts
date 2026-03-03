@@ -1,5 +1,7 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
+type HandleFolderOpenResponse = { canceled: true } | { canceled: false; folderStruk: FolderItem }
+
 declare global {
     interface WindowControll {
         /**
@@ -33,7 +35,7 @@ declare global {
         }
     }
     interface fsControll {
-        openFolder(): Promise
+        openFolder(): Promise<HandleFolderOpenResponse>
     }
 
     interface API {

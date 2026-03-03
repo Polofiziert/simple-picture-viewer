@@ -4,11 +4,11 @@ import { ImageIcon, HardDrive, Ruler, Calendar } from 'lucide-solid'
 interface DetailsPanelProps {
     image: {
         name: string
-        size: string
+        size: number
         dimensions: string
-        dateModified: string
+        dateModified: Date
         format: string
-        category: string
+        category: string[]
         marked: boolean
     }
 }

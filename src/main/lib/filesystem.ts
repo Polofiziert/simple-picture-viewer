@@ -1,38 +1,13 @@
 import * as fs from 'node:fs'
+import crypto from 'crypto'
+
 const isFilename = new RegExp(/.+\..+/)
-
-interface FileStats {
-    thumb: string
-    thumBig: string
-    size: number
-    dimensions: string
-    dateModified: Date
-    format: string
-    marked: boolean
-    categorys: Array<string>
-}
-
-interface FolderStats {
-    dateModifide: Date
-    expanded: boolean
-    count: number
-}
-
-export interface FolderItem {
-    id: number
-    src: string
-    name: string
-    type: 'file' | 'folder'
-    folderStats?: FolderStats
-    fileStats?: FileStats
-    childs?: Array<FolderItem>
-}
 
 export async function makeFolderStructure(path: string): Promise<FolderItem> {
     const dir = await fs.promises.readdir(path)
 
     const folderStruk: FolderItem = {
-        id: 0,
+        id: crypto.randomUUID(),
         src: path,
         name: path,
         type: 'folder',
@@ -54,7 +29,7 @@ export async function makeFolderStructure(path: string): Promise<FolderItem> {
                 categorys: []
             }
             const folderItem: FolderItem = {
-                id: i,
+                id: crypto.randomUUID(),
                 src: path + '/' + dir[i],
                 name: dir[i],
                 type: 'file',
@@ -72,7 +47,7 @@ export async function makeFolderStructure(path: string): Promise<FolderItem> {
             }
 
             const folderItem: FolderItem = {
-                id: i,
+                id: crypto.randomUUID(),
                 src: path + '/' + dir[i],
                 name: dir[i],
                 type: 'folder',

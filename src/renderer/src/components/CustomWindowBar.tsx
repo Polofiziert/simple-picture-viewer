@@ -7,7 +7,7 @@ interface CustomWindowBarProps {
     currentImage: {
         name: string
         marked: boolean
-        category: string
+        category: string[]
     }
     onMarkToggle: () => void
     onCategoryChange: (category: string) => void

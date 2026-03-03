@@ -1,39 +1,16 @@
-import { createSignal, type Component, For } from 'solid-js' // import { type Component, createSignal } from 'solid-js'
+import { createSignal, type Component } from 'solid-js' // import { type Component, createSignal } from 'solid-js'
+import type { SetStoreFunction } from 'solid-js/store'
 import { Button } from './ui/button'
-import SidebarFolderItem from './FolderItem'
+import SidebarFolderList from './FolderList'
+import { findIndexPath } from '../lib/folderStrukHelpers'
 
 interface FolderSidebarProps {
     onFolderSelect: (folderId: string) => void
+    onFileSelect: (folderId: string) => void
     onOpenFolder: () => void
     selectedFolder: string
-    folderStruk: FolderItem | undefined
-}
-
-interface FileStats {
-    thumb: string
-    thumBig: string
-    size: number
-    dimensions: string
-    dateModified: Date
-    format: string
-    marked: boolean
-    categorys: Array<string>
-}
-
-interface FolderStats {
-    dateModifide: Date
-    expanded: boolean
-    count: number
-}
-
-export interface FolderItem {
-    id: string
-    src: string
-    name: string
-    type: 'file' | 'folder'
-    folderStats?: FolderStats
-    fileStats?: FileStats
-    childs?: Array<FolderItem>
+    folderStruk: FolderItem
+    setFolderStruk: SetStoreFunction<FolderItem>
 }
 
 /**
@@ -41,12 +18,8 @@ export interface FolderItem {
  * Allows users to create, delete, and organize custom folders
  */
 const FolderSidebar: Component<FolderSidebarProps> = (props) => {
-    // const folderStrukJson = JSON.parse(
-    //     '{"id":0,"src":"/Users/polo/Pictures/TestBilder","name":"/Users/polo/Pictures/TestBilder","type":"folder","folderStats":{"dateModifide":"2026-02-27T20:23:08.806Z","expanded":false,"count":16},"childs":[{"id":1,"src":"/Users/polo/Pictures/TestBilder/AndererOrdner","name":"AndererOrdner","type":"folder","folderStats":{"dateModifide":"2026-02-27T20:23:08.808Z","expanded":false,"count":16},"childs":[{"id":1,"src":"/Users/polo/Pictures/TestBilder/AndererOrdner/AndrerO22","name":"AndrerO22","type":"folder","folderStats":{"dateModifide":"2026-02-27T20:23:08.807Z","expanded":false,"count":16},"childs":[{"id":0,"src":"/Users/polo/Pictures/TestBilder/AndererOrdner/AndrerO22/DSC_0116.JPG","name":"DSC_0116.JPG","type":"file","fileStats":{"thumb":"string","thumBig":"string","size":3863673,"dimensions":"string","dateModified":"2021-06-13T20:26:48.000Z","format":"string","marked":false,"categorys":[]}}]},{"id":2,"src":"/Users/polo/Pictures/TestBilder/AndererOrdner/DSC_0106.JPG","name":"DSC_0106.JPG","type":"file","fileStats":{"thumb":"string","thumBig":"string","size":11430071,"dimensions":"string","dateModified":"2021-06-13T19:24:22.000Z","format":"string","marked":false,"categorys":[]}}]},{"id":2,"src":"/Users/polo/Pictures/TestBilder/DSC_0106.JPG","name":"DSC_0106Fest.JPG","type":"file","fileStats":{"thumb":"string","thumBig":"string","size":11430071,"dimensions":"string","dateModified":"2021-06-13T19:24:22.000Z","format":"string","marked":false,"categorys":[]}},{"id":3,"src":"/Users/polo/Pictures/TestBilder/DSC_0107.JPG","name":"DSC_0107.JPG","type":"file","fileStats":{"thumb":"string","thumBig":"string","size":11073450,"dimensions":"string","dateModified":"2021-06-13T19:24:28.000Z","format":"string","marked":false,"categorys":[]}}]}'
-    // )
     const [isCreating, setIsCreating] = createSignal<boolean>(false)
     const [newFolderName, setNewFolderName] = createSignal<string>('')
-    // const [folderStruk, setFolderStruk] = createSignal<FolderItem>(folderStrukJson)
     const [folders] = createSignal([
         { id: 'marked', name: 'Marked', type: 'special', count: 0, expanded: false }
     ])
@@ -71,8 +44,21 @@ const FolderSidebar: Component<FolderSidebarProps> = (props) => {
     //     }
     // }
 
-    const toggleExpanded = (id: string): void => {
-        console.log('renderer/app/FolderSidebar: ', id)
+    const toggleExpanded = (folderId: string): void => {
+        // locate the index path into the store
+        const idxPath = findIndexPath(props.folderStruk, folderId)
+        if (idxPath === null) return
+
+        // build the setter path ['childs', i, 'childs', j, ..., 'folderStats', 'expanded']
+        const setPath: Array<string | number> = []
+        idxPath.forEach((i) => {
+            setPath.push('childs', i)
+        })
+        setPath.push('folderStats', 'expanded')
+
+        // spread an any tuple since SetStoreFunction has overloads
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(props.setFolderStruk as any)(...setPath, (v: boolean) => !v)
     }
 
     // const handleDeleteFolder = (id: string): void => {
@@ -153,7 +139,8 @@ const FolderSidebar: Component<FolderSidebarProps> = (props) => {
                 )}
 
                 <ul class="space-y-1" role="list">
-                    {props.folderStruk?.childs?.length === 1 || props.folderStruk === undefined ? (
+                    {/* Handle empty FolderStruk, not chosen Working Directory */}
+                    {props.folderStruk.name === 'initialFolder_0988' ? (
                         <li>
                             <button
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all group bg-blue-500/80 text-white shadow-sm"
@@ -163,21 +150,14 @@ const FolderSidebar: Component<FolderSidebarProps> = (props) => {
                             </button>
                         </li>
                     ) : (
-                        <li>
-                            <For each={props.folderStruk?.childs}>
-                                {/* property id is removed for ts, (folder, id) or (item, index) */}
-                                {(child) => (
-                                    <li id={`${child.id}`}>
-                                        <SidebarFolderItem
-                                            child={child}
-                                            onFolderSelect={props.onFolderSelect}
-                                            selectedFolder={props.selectedFolder}
-                                            toggleExpanded={toggleExpanded}
-                                        />
-                                    </li>
-                                )}
-                            </For>
-                        </li>
+                        /* Handle filled FolderStruk, chosen Working Directory */
+                        <SidebarFolderList
+                            onFolderSelect={props.onFolderSelect}
+                            onFileSelect={props.onFileSelect}
+                            onToggleExpanded={toggleExpanded}
+                            folderItem={props.folderStruk}
+                            selectedFolder={props.selectedFolder}
+                        />
                     )}
                 </ul>
                 {folders.length === 2 && (

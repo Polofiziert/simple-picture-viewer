@@ -1,10 +1,9 @@
 import { type Component } from 'solid-js' // import { type Component, createSignal } from 'solid-js'
 import { Folder, Star, ChevronDown, ChevronRight } from 'lucide-solid' // import { Folder, FolderPlus, Star, Trash2, ChevronRight, ChevronDown } from 'lucide-solid'
-import { FolderItem } from './FolderSidebar'
 
 interface SidebarFolderItemProps {
     child: FolderItem
-    onFolderSelect: (folderId: string) => void
+    onItemSelect: (itemId: string) => void
     toggleExpanded: (folderId: string) => void
     selectedFolder: string
 }
@@ -12,7 +11,7 @@ interface SidebarFolderItemProps {
 const SidebarFolderItem: Component<SidebarFolderItemProps> = (props) => {
     return (
         <button
-            onClick={() => props.onFolderSelect(props.child.id)}
+            onClick={() => props.onItemSelect(props.child.id)}
             class={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all group ${
                 props.selectedFolder === props.child.id
                     ? 'bg-blue-500/80 text-white shadow-sm'

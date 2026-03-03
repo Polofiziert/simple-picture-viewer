@@ -1,8 +1,11 @@
 import type { Component } from 'solid-js'
-import { createEffect, createSignal } from 'solid-js'
+import { createEffect, createSignal, createMemo, onCleanup } from 'solid-js'
+import { createStore, reconcile } from 'solid-js/store'
+import { findPath, getFolder } from './lib/folderStrukHelpers'
+
 // import Versions from './components/Versions'
 import CustomWindowBar from './components/CustomWindowBar'
-import FolderSidebar, { FolderItem } from './components/FolderSidebar'
+import FolderSidebar from './components/FolderSidebar'
 import DetailsPanel from './components/DetailsPanel'
 import ImageViewer from './components/ImageViewer'
 import ImageCarousel from './components/ImageCarousel'
@@ -19,41 +22,57 @@ import image2 from './assets/img/DSC_0040.jpg'
 // }
 
 interface ImageData {
-    id: number
+    index: number
+    id: string
     src: string
     name: string
-    size: string
+    size: number
     dimensions: string
-    dateModified: string
+    dateModified: Date
     format: string
     marked: boolean
-    category: string
+    category: Array<string>
 }
 
 const sampleImages: ImageData[] = [
     {
-        id: 1,
+        index: 0,
+        id: '1',
         src: image1,
         name: 'mountain-landscape.jpg',
-        size: '2.4 MB',
+        size: 2000400,
         dimensions: '1920 × 1280',
-        dateModified: 'Feb 20, 2026',
+        dateModified: new Date(),
         format: 'JPEG',
         marked: false,
-        category: 'Nature'
+        category: ['Nature']
     },
     {
-        id: 2,
+        index: 1,
+        id: '2',
         src: image2,
         name: 'ocean-sunset.jpg',
-        size: '3.1 MB',
+        size: 3003000,
         dimensions: '2048 × 1365',
-        dateModified: 'Feb 19, 2026',
+        dateModified: new Date(),
         format: 'JPEG',
         marked: false,
-        category: 'Landscape'
+        category: ['Landscape']
     }
 ]
+
+const emptyFolderStruk: FolderItem = {
+    id: '0',
+    src: '',
+    name: 'initialFolder_0988',
+    type: 'folder',
+    folderStats: {
+        dateModifide: new Date(),
+        expanded: false,
+        count: 0
+    },
+    childs: []
+}
 
 /**
  * SimplePictureViewer - Main application component
@@ -62,25 +81,33 @@ const sampleImages: ImageData[] = [
  */
 const App: Component = () => {
     //const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
-    const [images, setImages] = createSignal<ImageData[]>(sampleImages) // const [images, setImages] = createSignal<ImageData[]>(sampleImages)
-    const [currentIndex, setCurrentIndex] = createSignal<number>(0)
     const [showFolderSidebar, setShowFolderSidebar] = createSignal<boolean>(false)
-
     const [showDetailsSidebar, setShowDetailsSidebar] = createSignal<boolean>(false)
-    const [selectedFolder, setSelectedFolder] = createSignal('current')
 
-    const [folderStruk, setFolderStruk] = createSignal<FolderItem>()
+    const [currentIndex, setCurrentIndex] = createSignal<number>(0)
+    const [images, setImages] = createSignal<ImageData[]>(sampleImages) // const [images, setImages] = createSignal<ImageData[]>(sampleImages)
+    const [selectedFolder, setSelectedFolder] = createSignal<string>('0')
+    const [folderStruk, setFolderStruk] = createStore<FolderItem>(emptyFolderStruk)
 
-    // const [folderStruk] = createSignal({})
+    const [currentPath, setCurrentPath] = createSignal<string[]>([])
+    const currentFolder = createMemo<FolderItem>(() => {
+        // use helper to traverse store; keeps access within tracked memo
+        return getFolder(folderStruk, currentPath())
+    })
 
     async function handleOpenFolder(): Promise<void> {
         console.log('renderer/app/handleOpenFolder()')
         const struk = await window.api.fsControll.openFolder()
 
         console.log('renderer/app/handleOpenFolder() struk: ', struk)
-        setFolderStruk(struk)
+        if (struk.canceled === false) {
+            setFolderStruk(reconcile(struk.folderStruk))
+            setSelectedFolder(folderStruk.id)
+            setCurrentIndex(0)
+            handleFolderSelect(selectedFolder())
+        }
 
-        console.log('renderer/app/handleOpenFolder() folderStruk signal: ', folderStruk())
+        console.log('renderer/app/handleOpenFolder() folderStruk signal: ', folderStruk)
     }
 
     /**
@@ -88,6 +115,8 @@ const App: Component = () => {
      * @param direction - 'prev' or 'next'
      */
     const handleNavigate = (direction: 'prev' | 'next'): void => {
+        console.log('renderer/app/handleNavigate()')
+
         if (direction === 'prev' && currentIndex() > 0) {
             setCurrentIndex((prev) => prev - 1)
         } else if (direction === 'next' && currentIndex() < images().length - 1) {
@@ -100,6 +129,8 @@ const App: Component = () => {
      * @param index - The index of the image to select
      */
     const handleSelectImage = (index: number): void => {
+        console.log('renderer/app/handleSelectImage()')
+
         setCurrentIndex(index)
     }
 
@@ -107,6 +138,8 @@ const App: Component = () => {
      * Toggle the marked status of the current image
      */
     const handleMarkToggle = (): void => {
+        console.log('renderer/app/handleMarkToggle()')
+
         setImages((prevImages) =>
             prevImages.map((img, idx) =>
                 idx === currentIndex() ? { ...img, marked: !img.marked } : img
@@ -118,9 +151,10 @@ const App: Component = () => {
      * @param category - The new category to assign
      */
     const handleCategoryChange = (category: string): void => {
-        setImages((prevImages) =>
-            prevImages.map((img, idx) => (idx === currentIndex() ? { ...img, category } : img))
-        )
+        console.log('renderer/app/handleCategoryChange: ', category)
+        // setImages((prevImages) =>
+        //    prevImages.map((img, idx) => (idx === currentIndex() ? { ...img, category } : img))
+        //)
     }
 
     /**
@@ -128,19 +162,76 @@ const App: Component = () => {
      * @param folderId - The ID of the folder to select
      */
     const handleFolderSelect = (folderId: string): void => {
-        setSelectedFolder(folderId)
-        // TODO: Filter images based on the selected folder
-        // For marked folder, show only marked images
-        // For custom folders, show images in that folder
+        console.log('renderer/app/handleFolderSelect() folderID: ', folderId)
+
+        const path = findPath(folderStruk, folderId)
+        console.log('renderer/app/handleFolderSelect() path: ', path)
+        if (!path) return
+
+        if (path == currentPath()) return
+
+        if (getFolder(folderStruk, path).type === 'file') path.pop()
+
+        setCurrentPath(path)
+        setSelectedFolder(path[path.length - 1])
+
+        const folder = currentFolder()
+        console.log('renderer/app/handleFolderSelect() folder: ', folder)
+
+        const files = folder.childs?.filter((f) => f.type === 'file') ?? []
+        console.log('renderer/app/handleFolderSelect() files: ', files)
+        if (files.length == 0) return
+
+        setImages(
+            files.map((f, index) => ({
+                index: index,
+                id: f.id ?? 0,
+                src: f.src ?? '',
+                name: f.name ?? 'empty',
+                size: f.fileStats?.size ?? 0,
+                dimensions: f.fileStats?.dimensions ?? '',
+                dateModified: f.fileStats?.dateModified ?? new Date(),
+                format: f.fileStats?.format ?? '',
+                marked: f.fileStats?.marked ?? false,
+                category: f.fileStats?.categorys ?? []
+            }))
+        )
+        console.log('renderer/app/handleFolderSelect() images: ', images())
+
+        setCurrentIndex(0)
     }
+
+    /**
+     * Select a file from the sidebar
+     * @param fileId - The ID of the folder to select
+     */
+    const handleFileSelect = (fileId: string): void => {
+        console.log('renderer/app/handleFileSelect fileId: ', fileId)
+        const image = images().find((c) => c.id === fileId) || undefined
+        if (image === undefined) {
+            // When image file not in images() of current folder, change folder and look again
+            console.log('renderer/app/handleFileSelect file in other Folder')
+            handleFolderSelect(fileId)
+            handleFileSelect(fileId)
+        } else {
+            // When image file in images() simply change to its index
+            console.log('renderer/app/handleFileSelect image: ', image)
+            handleSelectImage(image.index)
+        }
+    }
+
+    /**
+     * Handle folder structure updates
+     * Creates a new reference to trigger Solid.js reactivity
+     */
 
     /**
      * Keyboard shortcuts handler
      */
     createEffect(() => {
         const handleKeyDown = (e: KeyboardEvent): void => {
-            console.group('KeyPress')
-            console.log('KeyPress: ', e)
+            // console.group('KeyPress')
+            // console.log('KeyPress: ', e)
 
             // Prevent shortcuts when typing in input fields
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -150,51 +241,51 @@ const App: Component = () => {
 
             // Navigation
             if (e.key === 'ArrowRight') {
-                console.log('KeyPress ArrowRight')
+                // console.log('KeyPress ArrowRight')
                 e.preventDefault()
                 if (currentIndex() < images().length - 1) handleNavigate('next')
             } else if (e.key === 'ArrowLeft') {
-                console.log('KeyPress ArrowLeft')
+                // console.log('KeyPress ArrowLeft')
                 e.preventDefault()
                 if (currentIndex() > 0) handleNavigate('prev')
             }
 
             // Marking
             else if (e.key === ' ') {
-                console.log('KeyPress Space')
+                // console.log('KeyPress Space')
                 e.preventDefault()
                 handleMarkToggle()
             }
 
             // Sidebar toggles
             else if (e.key === 'f' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
-                console.log('KeyPress f')
+                // console.log('KeyPress f')
                 e.preventDefault()
                 setShowFolderSidebar((prev) => !prev)
             } else if (e.key === 'd' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
-                console.log('KeyPress d')
+                // console.log('KeyPress d')
                 e.preventDefault()
                 setShowDetailsSidebar((prev) => !prev)
             }
 
             // First/Last image
             else if (e.key === 'Home') {
-                console.log('KeyPress Home')
+                // console.log('KeyPress Home')
 
                 e.preventDefault()
                 setCurrentIndex(0)
             } else if (e.key === 'End') {
-                console.log('KeyPress End')
+                // console.log('KeyPress End')
 
                 e.preventDefault()
                 setCurrentIndex(images.length - 1)
             }
 
-            console.groupEnd()
+            // console.groupEnd()
         }
 
         window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
+        onCleanup(() => window.removeEventListener('keydown', handleKeyDown))
     })
 
     return (
@@ -206,9 +297,9 @@ const App: Component = () => {
             >
                 <CustomWindowBar
                     currentImage={{
-                        name: images()[currentIndex()].name,
-                        marked: images()[currentIndex()].marked,
-                        category: images()[currentIndex()].category
+                        name: images()[currentIndex()].name ?? 'empty',
+                        marked: images()[currentIndex()].marked ?? false,
+                        category: images()[currentIndex()].category ?? []
                     }}
                     onMarkToggle={handleMarkToggle}
                     onCategoryChange={handleCategoryChange}
@@ -224,13 +315,17 @@ const App: Component = () => {
                 <div id="main-content" class="flex flex-1 overflow-hidden">
                     {showFolderSidebar() && (
                         <FolderSidebar
-                            onFolderSelect={handleFolderSelect}
                             onOpenFolder={handleOpenFolder}
-                            folderStruk={folderStruk()}
+                            onFolderSelect={handleFolderSelect}
+                            onFileSelect={handleFileSelect}
+                            folderStruk={folderStruk}
+                            setFolderStruk={setFolderStruk}
                             selectedFolder={selectedFolder()}
                         />
                     )}
                     <ImageViewer
+                        // imageSrc={images()[currentIndex()].src}
+                        // imageAlt={images()[currentIndex()].name}
                         imageSrc={images()[currentIndex()].src}
                         imageAlt={images()[currentIndex()].name}
                     />
@@ -250,6 +345,7 @@ const App: Component = () => {
                 </div>
                 <ImageCarousel
                     images={images().map((img) => ({
+                        index: img.index,
                         id: img.id,
                         src: img.src,
                         name: img.name,
