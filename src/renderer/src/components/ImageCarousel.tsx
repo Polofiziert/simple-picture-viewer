@@ -6,7 +6,7 @@ import { Button } from './ui/button'
 interface ImageCarouselProps {
     images: Array<{
         index: number
-        id: number
+        id: string
         src: string
         name: string
         marked: boolean
