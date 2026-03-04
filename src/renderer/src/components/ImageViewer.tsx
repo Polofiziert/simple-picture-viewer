@@ -221,7 +221,7 @@ const ImageViewer: Component<ImageViewerProps> = (props) => {
             <div class="w-full h-full flex items-center justify-center p-8">
                 <img
                     ref={imageRef}
-                    src={props.imageSrc}
+                    src={`spv-resource://${props.imageSrc}`}
                     alt={props.imageSrc}
                     class="max-w-full max-h-full object-contain shadow-2xl"
                     style={{

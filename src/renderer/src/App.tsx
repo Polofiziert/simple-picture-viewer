@@ -1,7 +1,7 @@
 import type { Component } from 'solid-js'
 import { createEffect, createSignal, createMemo, onCleanup } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
-import { findPath, getFolder } from './lib/folderStrukHelpers'
+import { findPath, getFolder, findIndexPath } from './lib/folderStrukHelpers'
 
 // import Versions from './components/Versions'
 import CustomWindowBar from './components/CustomWindowBar'
@@ -13,8 +13,8 @@ import ImageCarousel from './components/ImageCarousel'
 // import { Button } from '~/components/ui/button'
 
 // import electronLogo from './assets/electron.svg'
-import image1 from './assets/img/DSC_0039.jpg'
-import image2 from './assets/img/DSC_0040.jpg'
+// import image1 from './assets/img/DSC_0039.jpg'
+// import image2 from './assets/img/DSC_0040.jpg'
 
 // interface ImageModifications {
 //     rotation: number
@@ -32,32 +32,55 @@ interface ImageData {
     format: string
     marked: boolean
     category: Array<string>
+    fileStats: FileStats
 }
 
 const sampleImages: ImageData[] = [
     {
         index: 0,
         id: '1',
-        src: image1,
+        src: '/Users/polo/Documents/code/simple-picture-viewer/src/renderer/src/assets/img/DSC_0039.JPG',
         name: 'mountain-landscape.jpg',
         size: 2000400,
         dimensions: '1920 × 1280',
         dateModified: new Date(),
         format: 'JPEG',
         marked: false,
-        category: ['Nature']
+        category: ['Nature'],
+        fileStats: {
+            thumb: '/Users/polo/Documents/code/simple-picture-viewer/src/renderer/src/assets/img/DSC_0039.JPG',
+            thumBig:
+                '/Users/polo/Documents/code/simple-picture-viewer/src/renderer/src/assets/img/DSC_0039.JPG',
+            size: 0,
+            dimensions: '',
+            dateModified: new Date(),
+            format: '',
+            marked: false,
+            categorys: []
+        }
     },
     {
         index: 1,
         id: '2',
-        src: image2,
+        src: '/Users/polo/Documents/code/simple-picture-viewer/src/renderer/src/assets/img/DSC_0040.JPG',
         name: 'ocean-sunset.jpg',
         size: 3003000,
         dimensions: '2048 × 1365',
         dateModified: new Date(),
         format: 'JPEG',
         marked: false,
-        category: ['Landscape']
+        category: ['Landscape'],
+        fileStats: {
+            thumb: '/Users/polo/Documents/code/simple-picture-viewer/src/renderer/src/assets/img/DSC_0040.JPG',
+            thumBig:
+                '/Users/polo/Documents/code/simple-picture-viewer/src/renderer/src/assets/img/DSC_0040.JPG',
+            size: 0,
+            dimensions: '',
+            dateModified: new Date(),
+            format: '',
+            marked: false,
+            categorys: []
+        }
     }
 ]
 
@@ -84,11 +107,11 @@ const App: Component = () => {
     const [showFolderSidebar, setShowFolderSidebar] = createSignal<boolean>(false)
     const [showDetailsSidebar, setShowDetailsSidebar] = createSignal<boolean>(false)
 
-    const [currentIndex, setCurrentIndex] = createSignal<number>(0)
     const [images, setImages] = createSignal<ImageData[]>(sampleImages) // const [images, setImages] = createSignal<ImageData[]>(sampleImages)
+    const [currentIndex, setCurrentIndex] = createSignal<number>(0)
     const [selectedFolder, setSelectedFolder] = createSignal<string>('0')
-    const [folderStruk, setFolderStruk] = createStore<FolderItem>(emptyFolderStruk)
 
+    const [folderStruk, setFolderStruk] = createStore<FolderItem>(emptyFolderStruk)
     const [currentPath, setCurrentPath] = createSignal<string[]>([])
     const currentFolder = createMemo<FolderItem>(() => {
         // use helper to traverse store; keeps access within tracked memo
@@ -97,11 +120,11 @@ const App: Component = () => {
 
     async function handleOpenFolder(): Promise<void> {
         console.log('renderer/app/handleOpenFolder()')
-        const struk = await window.api.fsControll.openFolder()
+        const dialog = await window.api.fsControll.openFolder()
 
-        console.log('renderer/app/handleOpenFolder() struk: ', struk)
-        if (struk.canceled === false) {
-            setFolderStruk(reconcile(struk.folderStruk))
+        console.log('renderer/app/handleOpenFolder() dialog: ', dialog)
+        if (dialog.canceled === false) {
+            setFolderStruk(reconcile(dialog.folderStruk))
             setSelectedFolder(folderStruk.id)
             setCurrentIndex(0)
             handleFolderSelect(selectedFolder())
@@ -137,15 +160,35 @@ const App: Component = () => {
     /**
      * Toggle the marked status of the current image
      */
-    const handleMarkToggle = (): void => {
+    const handleMarkToggle = (fileId: string): void => {
         console.log('renderer/app/handleMarkToggle()')
+
+        // locate the index path into the store
+        const idxPath = findIndexPath(folderStruk, fileId)
+        if (idxPath === null) return
+
+        // build the setter path ['childs', i, 'childs', j, ..., 'folderStats', 'expanded']
+        const setPath: Array<string | number> = []
+        idxPath.forEach((i) => {
+            setPath.push('childs', i)
+        })
+        setPath.push('fileStats', 'marked')
+
+        // spread an any tuple since SetStoreFunction has overloads
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(setFolderStruk as any)(...setPath, (v: boolean) => !v)
+
+        console.log('renderer/app/handleMarkToggle() images: ', images())
 
         setImages((prevImages) =>
             prevImages.map((img, idx) =>
                 idx === currentIndex() ? { ...img, marked: !img.marked } : img
             )
         )
+
+        console.log('renderer/app/handleMarkToggle() images: ', images())
     }
+
     /**
      * Update the category of the current image
      * @param category - The new category to assign
@@ -168,7 +211,7 @@ const App: Component = () => {
         console.log('renderer/app/handleFolderSelect() path: ', path)
         if (!path) return
 
-        if (path == currentPath()) return
+        if (path === currentPath()) return
 
         if (getFolder(folderStruk, path).type === 'file') path.pop()
 
@@ -180,7 +223,9 @@ const App: Component = () => {
 
         const files = folder.childs?.filter((f) => f.type === 'file') ?? []
         console.log('renderer/app/handleFolderSelect() files: ', files)
+        console.log('renderer/app/handleFolderSelect() filesLenght: ', files.length)
         if (files.length == 0) return
+        if (files[0].name === undefined) return
 
         setImages(
             files.map((f, index) => ({
@@ -193,7 +238,17 @@ const App: Component = () => {
                 dateModified: f.fileStats?.dateModified ?? new Date(),
                 format: f.fileStats?.format ?? '',
                 marked: f.fileStats?.marked ?? false,
-                category: f.fileStats?.categorys ?? []
+                category: f.fileStats?.categorys ?? [],
+                fileStats: f.fileStats ?? {
+                    thumb: '',
+                    thumBig: '',
+                    size: 0,
+                    dimensions: '',
+                    dateModified: new Date(),
+                    format: '',
+                    marked: false,
+                    categorys: []
+                }
             }))
         )
         console.log('renderer/app/handleFolderSelect() images: ', images())
@@ -252,9 +307,10 @@ const App: Component = () => {
 
             // Marking
             else if (e.key === ' ') {
-                // console.log('KeyPress Space')
+                console.log('KeyPress Space')
                 e.preventDefault()
-                handleMarkToggle()
+                handleMarkToggle(images()[currentIndex()].id)
+                console.log('KeyPress Space', folderStruk)
             }
 
             // Sidebar toggles
@@ -297,6 +353,7 @@ const App: Component = () => {
             >
                 <CustomWindowBar
                     currentImage={{
+                        id: images()[currentIndex()].id ?? '0',
                         name: images()[currentIndex()].name ?? 'empty',
                         marked: images()[currentIndex()].marked ?? false,
                         category: images()[currentIndex()].category ?? []
@@ -326,20 +383,18 @@ const App: Component = () => {
                     <ImageViewer
                         // imageSrc={images()[currentIndex()].src}
                         // imageAlt={images()[currentIndex()].name}
-                        imageSrc={images()[currentIndex()].src}
+                        imageSrc={images()[currentIndex()].fileStats.thumBig}
                         imageAlt={images()[currentIndex()].name}
                     />
                     {showDetailsSidebar() && (
                         <DetailsPanel
-                            image={{
-                                name: images()[currentIndex()].name,
-                                size: images()[currentIndex()].size,
-                                dimensions: images()[currentIndex()].dimensions,
-                                dateModified: images()[currentIndex()].dateModified,
-                                format: images()[currentIndex()].format,
-                                category: images()[currentIndex()].category,
-                                marked: images()[currentIndex()].marked
-                            }}
+                            name={images()[currentIndex()].name}
+                            size={images()[currentIndex()].size}
+                            dimensions={images()[currentIndex()].dimensions}
+                            dateModified={images()[currentIndex()].dateModified}
+                            format={images()[currentIndex()].format}
+                            category={images()[currentIndex()].category}
+                            marked={images()[currentIndex()].marked}
                         />
                     )}
                 </div>
@@ -347,7 +402,7 @@ const App: Component = () => {
                     images={images().map((img) => ({
                         index: img.index,
                         id: img.id,
-                        src: img.src,
+                        src: img.fileStats.thumb,
                         name: img.name,
                         marked: img.marked
                     }))}

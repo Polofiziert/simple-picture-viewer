@@ -20,9 +20,6 @@ interface FolderSidebarProps {
 const FolderSidebar: Component<FolderSidebarProps> = (props) => {
     const [isCreating, setIsCreating] = createSignal<boolean>(false)
     const [newFolderName, setNewFolderName] = createSignal<string>('')
-    const [folders] = createSignal([
-        { id: 'marked', name: 'Marked', type: 'special', count: 0, expanded: false }
-    ])
 
     const handleOpenFolder = (): void => {
         console.log('renderer/app/folderSidebar/handleOpenFolder()')
@@ -160,11 +157,6 @@ const FolderSidebar: Component<FolderSidebarProps> = (props) => {
                         />
                     )}
                 </ul>
-                {folders.length === 2 && (
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 px-3">
-                        Create custom folders to organize your images
-                    </p>
-                )}
             </div>
         </nav>
     )

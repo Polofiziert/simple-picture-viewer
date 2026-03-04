@@ -1,11 +1,15 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, protocol, net } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-// import path from 'node:path'
 
 // const workingDir = "~/"
 
 import { registerWindowHandlers, createWindow } from './windowHandlers'
 import { registerFilesystemHandler } from './filesystemHandlers'
+import { cleanTempFolder } from './lib/filesystem'
+
+protocol.registerSchemesAsPrivileged([{ scheme: 'spv-resource', privileges: { bypassCSP: true } }])
+
+// const { port1 } = new MessageChannelMain()
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -15,6 +19,12 @@ app.whenReady().then(() => {
     // Set app user model id for windows
     electronApp.setAppUserModelId('com.electron')
 
+    protocol.handle('spv-resource', (request) => {
+        const filePath = request.url.replace('spv-resource://', 'file://')
+        console.log('Main/app/WhenReady/protocolHandle() spv-resource path: ', filePath)
+        return net.fetch(filePath)
+    })
+
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -22,13 +32,17 @@ app.whenReady().then(() => {
         optimizer.watchWindowShortcuts(window)
     })
 
+    // const mainWindow = createWindow()
+    createWindow()
+
     // IPC hanlders
     ipcMain.on('ping', () => console.log('pong'))
     registerWindowHandlers()
     registerFilesystemHandler()
 
     console.log('Main/app/whenReady: createWindow()')
-    createWindow()
+
+    // mainWindow.webContents.postMessage('port', { progress: true, items: 10, done: 1 }, [port1])
 
     app.on('activate', function () {
         console.log('Main/appOn-activate: createWindow()')
@@ -44,6 +58,12 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         console.log('Main/appOn-window-all-closed: app.quit()')
+        cleanTempFolder()
         app.quit()
     }
+})
+
+app.on('quit', () => {
+    console.log('Main/appOn-quit: cleanTempFolder')
+    cleanTempFolder()
 })

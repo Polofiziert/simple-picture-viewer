@@ -22,7 +22,14 @@ const SidebarFolderItem: Component<SidebarFolderItemProps> = (props) => {
         >
             <div class="flex items-center gap-2 flex-1 min-w-0">
                 {props.child.type === 'file' ? (
-                    <Star class="w-4 h-4 flex-shrink-0 fill-current" aria-hidden="true" />
+                    props.child.fileStats?.marked === true ? (
+                        <Star
+                            class="w-4 h-4 flex-shrink-0 fill-current text-blue-500"
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <Star class="w-4 h-4 flex-shrink-0 fill-current" aria-hidden="true" />
+                    )
                 ) : (
                     <>
                         <button

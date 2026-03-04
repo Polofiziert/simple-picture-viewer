@@ -59,7 +59,7 @@ export function registerWindowHandlers(): void {
  * createWindow - creates the Browser window for the application
  * Basic window creation for the Application
  */
-export function createWindow(): void {
+export function createWindow(): BrowserWindow {
     console.log('Main/app/whenReady/createWindow(): ...')
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -92,6 +92,8 @@ export function createWindow(): void {
         return { action: 'deny' }
     })
 
+    //mainWindow.webContents.postMessage('port', { message: 'hello' }, [port1])
+
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -99,4 +101,6 @@ export function createWindow(): void {
     } else {
         mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
     }
+
+    return mainWindow
 }

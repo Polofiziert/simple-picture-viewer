@@ -2,15 +2,13 @@ import { type Component } from 'solid-js'
 import { ImageIcon, HardDrive, Ruler, Calendar } from 'lucide-solid'
 
 interface DetailsPanelProps {
-    image: {
-        name: string
-        size: number
-        dimensions: string
-        dateModified: Date
-        format: string
-        category: string[]
-        marked: boolean
-    }
+    name: string
+    size: number
+    dimensions: string
+    dateModified: Date
+    format: string
+    category: string[]
+    marked: boolean
 }
 
 /**
@@ -40,7 +38,7 @@ const DetailsPanel: Component<DetailsPanelProps> = (props) => {
                             <div class="flex-1 min-w-0">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Name</p>
                                 <p class="text-sm text-gray-900 dark:text-white break-words">
-                                    {props.image.name}
+                                    {props.name}
                                 </p>
                             </div>
                         </div>
@@ -53,7 +51,10 @@ const DetailsPanel: Component<DetailsPanelProps> = (props) => {
                             <div class="flex-1">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Size</p>
                                 <p class="text-sm text-gray-900 dark:text-white">
-                                    {props.image.size}
+                                    {Math.max(props.size * 9.53674e-7, 0, 1).toFixed(2)} MiB
+                                </p>
+                                <p class="text-sm text-gray-900 dark:text-white">
+                                    {Math.max(props.size * 10e-7, 0, 1).toFixed(2)} MB
                                 </p>
                             </div>
                         </div>
@@ -68,7 +69,7 @@ const DetailsPanel: Component<DetailsPanelProps> = (props) => {
                                     Dimensions
                                 </p>
                                 <p class="text-sm text-gray-900 dark:text-white">
-                                    {props.image.dimensions}
+                                    {props.dimensions}
                                 </p>
                             </div>
                         </div>
@@ -83,7 +84,7 @@ const DetailsPanel: Component<DetailsPanelProps> = (props) => {
                                     Modified
                                 </p>
                                 <p class="text-sm text-gray-900 dark:text-white">
-                                    {props.image.dateModified}
+                                    {props.dateModified.toLocaleString('de')}
                                 </p>
                             </div>
                         </div>
@@ -92,13 +93,13 @@ const DetailsPanel: Component<DetailsPanelProps> = (props) => {
                     {/* Format */}
                     <section class="bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-lg p-4 shadow-sm">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Format</p>
-                        <p class="text-sm text-gray-900 dark:text-white"> {props.image.format}</p>
+                        <p class="text-sm text-gray-900 dark:text-white"> {props.format}</p>
                     </section>
 
                     {/* Category */}
                     <section class="bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-lg p-4 shadow-sm">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Category</p>
-                        <p class="text-sm text-gray-900 dark:text-white"> {props.image.category}</p>
+                        <p class="text-sm text-gray-900 dark:text-white"> {props.category}</p>
                     </section>
 
                     {/* Marked Status */}
@@ -106,13 +107,14 @@ const DetailsPanel: Component<DetailsPanelProps> = (props) => {
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Status</p>
                         <div class="flex items-center gap-2">
                             <div
-                                class={`w-2 h-2 rounded-full ${'bg-gray-300 dark:bg-gray-600'}`}
+                                class={`w-2 h-2 rounded-full ${
+                                    props.marked ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                                }`}
                                 role="status"
                                 aria-label="iamge Marked"
                             />
                             <p class="text-sm text-gray-900 dark:text-white">
-                                {' '}
-                                {props.image.marked}
+                                {props.marked ? 'Marked' : 'Not marked'}
                             </p>
                         </div>
                     </section>

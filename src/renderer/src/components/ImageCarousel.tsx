@@ -104,7 +104,7 @@ const ImageCarousel: Component<ImageCarouselProps> = (props) => {
                                 tabIndex={props.currentIndex === index() ? 0 : -1}
                             >
                                 <img
-                                    src={item.src}
+                                    src={`spv-resource://${item.src}`}
                                     alt={item.name}
                                     class="w-full h-full object-cover"
                                 />

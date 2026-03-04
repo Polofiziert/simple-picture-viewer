@@ -1,15 +1,17 @@
 import { type Component, For } from 'solid-js'
 import { Star, Tag, Folder, ChevronLeft, ChevronRight, PanelLeft, PanelRight } from 'lucide-solid'
+import { Progress, ProgressValueLabel, ProgressLabel } from '~/components/ui/progress'
 
 import { Button } from '~/components/ui/button'
 
 interface CustomWindowBarProps {
     currentImage: {
+        id: string
         name: string
         marked: boolean
         category: string[]
     }
-    onMarkToggle: () => void
+    onMarkToggle: (fileId: string) => void
     onCategoryChange: (category: string) => void
     onNavigate: (direction: 'prev' | 'next') => void
     hasNext: boolean
@@ -113,7 +115,7 @@ const CustomWindowBar: Component<CustomWindowBarProps> = (props) => {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={props.onMarkToggle}
+                        onClick={() => props.onMarkToggle(props.currentImage.id)}
                         class={`h-8 px-3 ${
                             props.currentImage.marked
                                 ? 'bg-blue-500/80 text-white hover:bg-blue-600/80'
@@ -179,8 +181,22 @@ const CustomWindowBar: Component<CustomWindowBarProps> = (props) => {
             </div>
 
             {/* Right Side */}
-            <div style={{ '-webkit-app-region': 'no-drag' }} class="flex items-center gap-2">
-                <Folder class="w-4 h-4 text-gray-600 dark:text-gray-300" aria-hidden="true" />
+            <div style={{ '-webkit-app-region': 'no-drag' }} class="flex items-center gap-4">
+                <span class="text-xs text-gray-700 dark:text-gray-200">
+                    <Progress
+                        value={5}
+                        minValue={0}
+                        maxValue={10}
+                        getValueLabel={({ value, max }) => `${value} of ${max} Pictures`}
+                        class="w-64 space-y-1 text-xs"
+                    >
+                        <div class="flex justify-between">
+                            <ProgressLabel>Rendering...</ProgressLabel>
+                            <ProgressValueLabel />
+                        </div>
+                    </Progress>
+                </span>
+                <Folder class="w-4 h-8 text-gray-600 dark:text-gray-300" aria-hidden="true" />
                 <span class="text-sm text-gray-700 dark:text-gray-200">
                     {props.currentImage.name}
                 </span>
