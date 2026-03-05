@@ -33,15 +33,15 @@ Mermaid flowchart for `findPath`:
 
 ```mermaid
 flowchart TD
-    A[call findPath(root, targetId)] --> B{root.id == targetId}
-    B -- yes --> C[return []]
-    B -- no --> D{root.childs?}
-    D -- yes --> E[for each child]
-    E --> F[call findPath(child, targetId)]
-    F --> G{result != null}
-    G -- yes --> H[return [child.id, ...result]]
-    G -- no --> I[continue loop]
-    D -- no --> J[return null]
+    A["call findPath(root, targetId)"] --> B{root.id == targetId}
+    B -- yes --> C["return []"]
+    B -- no --> D{"root.childs?"}
+    D -- yes --> E["for each child"]
+    E --> F["call findPath(child, targetId)"]
+    F --> G{"result != null"}
+    G -- yes --> H["return [child.id, ...result]"]
+    G -- no --> I["continue loop"]
+    D -- no --> J["return null"]
 ```
 
 ## Usage
