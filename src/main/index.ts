@@ -32,6 +32,7 @@ app.whenReady().then(() => {
         optimizer.watchWindowShortcuts(window)
     })
 
+    console.log('Main/app/whenReady: createWindow()')
     // const mainWindow = createWindow()
     createWindow()
 
@@ -39,8 +40,6 @@ app.whenReady().then(() => {
     ipcMain.on('ping', () => console.log('pong'))
     registerWindowHandlers()
     registerFilesystemHandler()
-
-    console.log('Main/app/whenReady: createWindow()')
 
     // mainWindow.webContents.postMessage('port', { progress: true, items: 10, done: 1 }, [port1])
 

@@ -16,6 +16,10 @@ const api = {
     },
     fsControll: {
         openFolder: () => ipcRenderer.invoke('dialog:openFolder')
+    },
+    pictureRender: {
+        progressState: (callback) =>
+            ipcRenderer.on('picRender:progress-state', (_event, value) => callback(value))
     }
 }
 

@@ -3,10 +3,9 @@ import * as fs from 'node:fs'
 import path from 'path'
 import crypto from 'crypto'
 import { getThumbnailPath, generateThumbnail } from './imageRender'
-
 const isFilename = new RegExp(/.+\..+/)
 
-export async function makeFolderStructure(path: string): Promise<FolderItem> {
+export async function makeFolderStructure(event, path: string): Promise<FolderItem> {
     const dir = await fs.promises.readdir(path)
 
     const folderStruk: FolderItem = {
@@ -19,6 +18,7 @@ export async function makeFolderStructure(path: string): Promise<FolderItem> {
     }
 
     for (let i = 0; i < dir.length - 1; i++) {
+        event.sender.send('picRender:progress-state', { isProgress: true, items: 1000, itemsDone: i })
         if (isFilename.test(dir[i])) {
             const stats = fs.promises.stat(path + '/' + dir[i])
             const uuid = crypto.randomUUID()
@@ -40,11 +40,11 @@ export async function makeFolderStructure(path: string): Promise<FolderItem> {
                 fileStats: fileStats
             }
             folderStruk.childs?.push(folderItem)
-            await generateThumbnail(folderItem.src, fileStats.thumb, 300, 80)
+            await generateThumbnail(folderItem.src, fileStats.thumb, 300, 30)
             await generateThumbnail(folderItem.src, fileStats.thumBig, 1200, 85)
         } else if (!isFilename.test(dir[i]) && dir[i] != '.DS_Store') {
             const dir = await fs.promises.readdir(path) // nicht effizient, evtl in recursivem call so das nur einmal aufgerufen wird?
-            const nestedFolder: FolderItem = await makeFolderStructure(path + '/' + dir[i]) // Recursive call for nested Folders
+            const nestedFolder: FolderItem = await makeFolderStructure(event, path + '/' + dir[i]) // Recursive call for nested Folders
 
             const folderStats: FolderStats = {
                 dateModifide: new Date(),

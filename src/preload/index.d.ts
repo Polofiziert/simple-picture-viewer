@@ -1,6 +1,9 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
-type HandleFolderOpenResponse = { canceled: true } | { canceled: false; folderStruk: FolderItem }
+export type HandleFolderOpenResponse =
+    | { canceled: true }
+    | { canceled: false; folderStruk: FolderItem }
+export type ProgressState = { isProgress: boolean; items: number; itemsDone: number }
 
 declare global {
     interface WindowControll {
@@ -37,6 +40,9 @@ declare global {
     interface fsControll {
         openFolder(): Promise<HandleFolderOpenResponse>
     }
+    interface pictureRender {
+        progressState(callback: (state: ProgressState) => void): void
+    }
 
     interface API {
         /**
@@ -44,6 +50,7 @@ declare global {
          */
         windowControll: WindowControll
         fsControll: fsControll
+        pictureRender: pictureRender
     }
 
     interface Window {

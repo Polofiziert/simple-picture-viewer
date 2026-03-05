@@ -1,7 +1,6 @@
-import { type Component, For } from 'solid-js'
+import { type Component, For, Show, createSignal } from 'solid-js'
 import { Star, Tag, Folder, ChevronLeft, ChevronRight, PanelLeft, PanelRight } from 'lucide-solid'
 import { Progress, ProgressValueLabel, ProgressLabel } from '~/components/ui/progress'
-
 import { Button } from '~/components/ui/button'
 
 interface CustomWindowBarProps {
@@ -28,7 +27,11 @@ interface CustomWindowBarProps {
  */
 const CustomWindowBar: Component<CustomWindowBarProps> = (props) => {
     const categories = ['Nature', 'Landscape', 'Urban', 'Travel', 'Favorites']
-
+    const [progress, setProgress] = createSignal({ isProgress: false, items: 0, itemsDone: 0 })
+    window.api.pictureRender.progressState((state) => {
+        console.log('progressState: ', state)
+        setProgress(state)
+    })
     return (
         <header
             class="h-14 bg-white/40 dark:bg-black/40 backdrop-blur-xl border-b border-white/20 dark:border-black/20 flex items-center justify-between px-4 select-none"
@@ -182,20 +185,22 @@ const CustomWindowBar: Component<CustomWindowBarProps> = (props) => {
 
             {/* Right Side */}
             <div style={{ '-webkit-app-region': 'no-drag' }} class="flex items-center gap-4">
-                <span class="text-xs text-gray-700 dark:text-gray-200">
-                    <Progress
-                        value={5}
-                        minValue={0}
-                        maxValue={10}
-                        getValueLabel={({ value, max }) => `${value} of ${max} Pictures`}
-                        class="w-64 space-y-1 text-xs"
-                    >
-                        <div class="flex justify-between">
-                            <ProgressLabel>Rendering...</ProgressLabel>
-                            <ProgressValueLabel />
-                        </div>
-                    </Progress>
-                </span>
+                <Show when={progress().isProgress}>
+                    <span class="text-xs text-gray-700 dark:text-gray-200">
+                        <Progress
+                            value={progress().itemsDone}
+                            minValue={0}
+                            maxValue={progress().items}
+                            getValueLabel={({ value, max }) => `${value} of ${max} Pictures`}
+                            class="w-64 space-y-1 text-xs"
+                        >
+                            <div class="flex justify-between">
+                                <ProgressLabel>Rendering...</ProgressLabel>
+                                <ProgressValueLabel />
+                            </div>
+                        </Progress>
+                    </span>
+                </Show>
                 <Folder class="w-4 h-8 text-gray-600 dark:text-gray-300" aria-hidden="true" />
                 <span class="text-sm text-gray-700 dark:text-gray-200">
                     {props.currentImage.name}

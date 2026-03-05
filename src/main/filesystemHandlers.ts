@@ -3,19 +3,21 @@ import { makeFolderStructure } from './lib/filesystem'
 import { HandleFolderOpenResponse } from '../preload/index.d'
 
 export function registerFilesystemHandler(): void {
-    ipcMain.handle('dialog:openFolder', handleFolderOpen)
+    ipcMain.handle('dialog:openFolder', (e) => handleFolderOpen(e))
 }
 
-export async function handleFolderOpen(): Promise<HandleFolderOpenResponse> {
-    console.log('Main/app/whenReady: handleFolderOpen')
-
+export async function handleFolderOpen(event): Promise<HandleFolderOpenResponse> {
     const { canceled, filePaths } = await dialog.showOpenDialog({
         properties: ['openDirectory', 'multiSelections']
     })
 
     if (!canceled) {
-        // console.log('Main/app/whenReady: ', filePaths)
-        const folderStruk = await makeFolderStructure(filePaths[0])
+        const folderStruk = await makeFolderStructure(event, filePaths[0])
+        event.sender.send('picRender:progress-state', {
+            isProgress: false,
+            items: 10,
+            itemsDone: 10
+        })
         // console.log('folderStruk: ', JSON.stringify(folderStruk))
         return {
             canceled: false,

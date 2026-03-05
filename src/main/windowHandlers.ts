@@ -92,8 +92,6 @@ export function createWindow(): BrowserWindow {
         return { action: 'deny' }
     })
 
-    //mainWindow.webContents.postMessage('port', { message: 'hello' }, [port1])
-
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
